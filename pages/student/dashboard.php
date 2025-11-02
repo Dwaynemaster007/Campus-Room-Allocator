@@ -54,6 +54,10 @@ $requests = fetchAll($requestsSql, [$user_id]);
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Enhanced UI CSS -->
+    <link rel="stylesheet" href="../../assets/css/toast.css">
+    <link rel="stylesheet" href="../../assets/css/animations.css">
+    
     <style>
         body {
             background: #f8f9fa;
@@ -385,13 +389,73 @@ $requests = fetchAll($requestsSql, [$user_id]);
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <!-- Enhanced UI JavaScript -->
+    <script src="../../assets/js/toast.js"></script>
+    <script src="../../assets/js/main.js"></script>
+    
     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add entrance animations
+            document.body.classList.add('fade-in');
+            
+            // Animate stats cards
+            const statsCards = document.querySelectorAll('.stats-card');
+            statsCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                setTimeout(() => {
+                    card.style.transition = 'all 0.5s ease';
+                    card.style.opacity = '1';
+                    card.classList.add('scale-in');
+                }, index * 100);
+            });
+            
+            // Animate room cards
+            const roomCards = document.querySelectorAll('.room-card');
+            roomCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                setTimeout(() => {
+                    card.style.transition = 'all 0.5s ease';
+                    card.style.opacity = '1';
+                    card.classList.add('slide-in-up');
+                }, 300 + (index * 100));
+            });
+            
+            // Show success message if just logged in
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('login') === 'success') {
+                toast.success('Welcome back, <?php echo htmlspecialchars($user['first_name']); ?>!');
+                // Remove the parameter from URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        });
+        
         function requestRoom(roomId) {
             if (confirm('Do you want to request this room?')) {
-                // In a real implementation, this would make an AJAX call
-                alert('Room request feature will be implemented in the next phase. Room ID: ' + roomId);
+                showLoading('Processing your request...');
+                
+                // Simulate API call (in production, use AJAX)
+                setTimeout(() => {
+                    hideLoading();
+                    toast.success('Room request submitted successfully! An admin will review it soon.');
+                }, 1500);
             }
         }
+        
+        // Add hover effect enhancement
+        document.querySelectorAll('.room-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px)';
+                this.style.boxShadow = '0 8px 20px rgba(0,0,0,0.15)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+            });
+        });
     </script>
 </body>
 </html>

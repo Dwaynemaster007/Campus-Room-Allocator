@@ -118,6 +118,10 @@ $fullRooms = count(array_filter($rooms, fn($r) => $r['current_occupancy'] >= $r[
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Enhanced UI CSS -->
+    <link rel="stylesheet" href="../../assets/css/toast.css">
+    <link rel="stylesheet" href="../../assets/css/animations.css">
+    
     <style>
         body {
             background: #f8f9fa;
@@ -239,17 +243,29 @@ $fullRooms = count(array_filter($rooms, fn($r) => $r['current_occupancy'] >= $r[
         <?php endif; ?>
         
         <!-- Add Room Button -->
-        <div class="mb-3">
+        <div class="mb-3 d-flex justify-content-between align-items-center">
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#roomModal" onclick="clearForm()">
                 <i class="fas fa-plus"></i> Add New Room
             </button>
+            
+            <!-- Search Box -->
+            <div class="input-group" style="max-width: 400px;">
+                <span class="input-group-text bg-white">
+                    <i class="fas fa-search"></i>
+                </span>
+                <input type="text" 
+                       class="form-control" 
+                       id="roomSearch" 
+                       placeholder="Search rooms by number, building, type..."
+                       onkeyup="searchRooms()">
+            </div>
         </div>
         
         <!-- Rooms Table -->
         <div class="card">
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-hover">
+                    <table class="table table-hover" id="roomsTable">
                         <thead>
                             <tr>
                                 <th>Room Number</th>
@@ -263,7 +279,7 @@ $fullRooms = count(array_filter($rooms, fn($r) => $r['current_occupancy'] >= $r[
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="roomsTableBody">
                             <?php if (empty($rooms)): ?>
                                 <tr>
                                     <td colspan="9" class="text-center text-muted">No rooms found</td>
@@ -392,7 +408,35 @@ $fullRooms = count(array_filter($rooms, fn($r) => $r['current_occupancy'] >= $r[
     </div>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Enhanced UI JavaScript -->
+    <script src="../../assets/js/toast.js"></script>
+    <script src="../../assets/js/main.js"></script>
+    
     <script>
+        // Show toasts for PHP messages
+        document.addEventListener('DOMContentLoaded', function() {
+            <?php if ($error): ?>
+                toast.error('<?php echo addslashes($error); ?>');
+                document.querySelector('.alert-danger')?.remove();
+            <?php endif; ?>
+            
+            <?php if ($success): ?>
+                toast.success('<?php echo addslashes($success); ?>');
+                document.querySelector('.alert-success')?.remove();
+            <?php endif; ?>
+            
+            // Add entrance animations
+            document.querySelectorAll('.stats-mini').forEach((card, index) => {
+                card.style.opacity = '0';
+                setTimeout(() => {
+                    card.style.transition = 'all 0.5s ease';
+                    card.style.opacity = '1';
+                    card.classList.add('scale-in');
+                }, index * 100);
+            });
+        });
+        
         function clearForm() {
             document.getElementById('roomForm').reset();
             document.getElementById('room_id').value = '';
@@ -412,6 +456,60 @@ $fullRooms = count(array_filter($rooms, fn($r) => $r['current_occupancy'] >= $r[
             
             new bootstrap.Modal(document.getElementById('roomModal')).show();
         }
+        
+        // Live Search Function
+        function searchRooms() {
+            const searchInput = document.getElementById('roomSearch');
+            const filter = searchInput.value.toLowerCase();
+            const table = document.getElementById('roomsTable');
+            const rows = table.getElementsByTagName('tr');
+            let visibleCount = 0;
+            
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                const text = row.textContent || row.innerText;
+                
+                if (text.toLowerCase().indexOf(filter) > -1) {
+                    row.style.display = '';
+                    row.classList.add('fade-in');
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+            
+            // Show message if no results
+            const noResultsRow = document.getElementById('noResultsRow');
+            if (noResultsRow) noResultsRow.remove();
+            
+            if (visibleCount === 0 && filter !== '') {
+                const tbody = document.getElementById('roomsTableBody');
+                const newRow = tbody.insertRow();
+                newRow.id = 'noResultsRow';
+                const cell = newRow.insertCell(0);
+                cell.colSpan = 9;
+                cell.className = 'text-center text-muted py-4';
+                cell.innerHTML = '<i class="fas fa-search fa-2x mb-2"></i><br>No rooms found matching your search.';
+            }
+        }
+        
+        // Enhanced delete confirmation
+        document.querySelectorAll('a[href*="delete="]').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const url = this.href;
+                
+                if (confirm('⚠️ Are you sure you want to delete this room?\n\nThis action cannot be undone.')) {
+                    showLoading('Deleting room...');
+                    window.location.href = url;
+                }
+            });
+        });
+        
+        // Form submission with loading
+        document.getElementById('roomForm').addEventListener('submit', function() {
+            showLoading('Saving room...');
+        });
     </script>
 </body>
 </html>
