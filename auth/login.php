@@ -102,6 +102,10 @@ if (isset($_GET['success'])) {
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Enhanced UI CSS -->
+    <link rel="stylesheet" href="../assets/css/toast.css">
+    <link rel="stylesheet" href="../assets/css/animations.css">
+    
     <style>
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -196,14 +200,14 @@ if (isset($_GET['success'])) {
             
             <div class="login-body">
                 <?php if ($error): ?>
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert" style="display: none;">
                         <i class="fas fa-exclamation-circle"></i> <?php echo htmlspecialchars($error); ?>
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 <?php endif; ?>
                 
                 <?php if ($success): ?>
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <div class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
                         <i class="fas fa-check-circle"></i> <?php echo htmlspecialchars($success); ?>
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
@@ -275,6 +279,10 @@ if (isset($_GET['success'])) {
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
+    <!-- Enhanced UI JavaScript -->
+    <script src="../assets/js/toast.js"></script>
+    <script src="../assets/js/main.js"></script>
+    
     <script>
         // Password toggle
         const togglePassword = document.getElementById('togglePassword');
@@ -287,14 +295,14 @@ if (isset($_GET['success'])) {
             this.classList.toggle('fa-eye-slash');
         });
         
-        // Form validation
+        // Enhanced form validation with loading
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             
             if (!email || !password) {
                 e.preventDefault();
-                alert('Please fill in all fields.');
+                toast.error('Please fill in all fields.');
                 return false;
             }
             
@@ -302,9 +310,36 @@ if (isset($_GET['success'])) {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
                 e.preventDefault();
-                alert('Please enter a valid email address.');
+                toast.error('Please enter a valid email address.');
+                document.getElementById('email').classList.add('shake');
+                setTimeout(() => {
+                    document.getElementById('email').classList.remove('shake');
+                }, 500);
                 return false;
             }
+            
+            // Show loading animation
+            showLoading('Logging you in...');
+        });
+        
+        // Convert PHP alerts to toast notifications
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add entrance animation
+            document.querySelector('.login-card').classList.add('scale-in');
+            
+            <?php if ($error): ?>
+                toast.error('<?php echo addslashes($error); ?>');
+                // Hide Bootstrap alert
+                const alert = document.querySelector('.alert-danger');
+                if (alert) alert.style.display = 'none';
+            <?php endif; ?>
+            
+            <?php if ($success): ?>
+                toast.success('<?php echo addslashes($success); ?>');
+                // Hide Bootstrap alert
+                const alert = document.querySelector('.alert-success');
+                if (alert) alert.style.display = 'none';
+            <?php endif; ?>
         });
     </script>
 </body>

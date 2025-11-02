@@ -54,6 +54,10 @@ $roomStats = fetchAll("
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Enhanced UI CSS -->
+    <link rel="stylesheet" href="../../assets/css/toast.css">
+    <link rel="stylesheet" href="../../assets/css/animations.css">
+    
     <style>
         body {
             background: #f8f9fa;
@@ -236,6 +240,89 @@ $roomStats = fetchAll("
             </div>
         </div>
         
+        <!-- Quick Visual Insights Row -->
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Room Type Distribution</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="roomTypeChart" style="max-height: 300px;"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0"><i class="fas fa-chart-line"></i> Allocation Status</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="allocationStatusChart" style="max-height: 300px;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-3 col-sm-6">
+                <div class="stats-card">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Total Students</h6>
+                            <h2 class="mb-0"><?php echo $totalStudents; ?></h2>
+                        </div>
+                        <div class="stats-icon icon-blue">
+                            <i class="fas fa-user-graduate"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 col-sm-6">
+                <div class="stats-card">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Total Rooms</h6>
+                            <h2 class="mb-0"><?php echo $totalRooms; ?></h2>
+                        </div>
+                        <div class="stats-icon icon-purple">
+                            <i class="fas fa-door-open"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 col-sm-6">
+                <div class="stats-card">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Available Rooms</h6>
+                            <h2 class="mb-0"><?php echo $availableRooms; ?></h2>
+                        </div>
+                        <div class="stats-icon icon-green">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 col-sm-6">
+                <div class="stats-card">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Active Allocations</h6>
+                            <h2 class="mb-0"><?php echo $totalAllocations; ?></h2>
+                        </div>
+                        <div class="stats-icon icon-orange">
+                            <i class="fas fa-clipboard-check"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <div class="row mt-4">
             <!-- Pending Requests Card -->
             <div class="col-md-3">
@@ -259,6 +346,11 @@ $roomStats = fetchAll("
                         <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Room Occupancy Overview</h5>
                     </div>
                     <div class="card-body">
+                        <!-- Chart Canvas -->
+                        <canvas id="occupancyChart" style="max-height: 300px;"></canvas>
+                        
+                        <hr class="my-4">
+                        
                         <div class="table-responsive">
                             <table class="table table-hover">
                                 <thead>
@@ -365,5 +457,279 @@ $roomStats = fetchAll("
     
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <!-- Enhanced UI JavaScript -->
+    <script src="../../assets/js/toast.js"></script>
+    <script src="../../assets/js/main.js"></script>
+    
+    <script>
+        // Add entrance animation
+        document.addEventListener('DOMContentLoaded', function() {
+            document.body.classList.add('fade-in');
+            
+            // Animate stats cards
+            const statsCards = document.querySelectorAll('.stats-card');
+            statsCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                setTimeout(() => {
+                    card.style.transition = 'all 0.5s ease';
+                    card.style.opacity = '1';
+                    card.classList.add('scale-in');
+                }, index * 100);
+            });
+            
+            // Initialize Occupancy Chart
+            const ctx = document.getElementById('occupancyChart');
+            if (ctx) {
+                const roomData = <?php echo json_encode($roomStats); ?>;
+                
+                const labels = roomData.map(stat => stat.type_name);
+                const occupancy = roomData.map(stat => parseInt(stat.total_occupancy));
+                const capacity = roomData.map(stat => parseInt(stat.total_capacity));
+                const available = roomData.map((stat, i) => capacity[i] - occupancy[i]);
+                
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Occupied',
+                                data: occupancy,
+                                backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                                borderColor: 'rgba(102, 126, 234, 1)',
+                                borderWidth: 2,
+                                borderRadius: 8
+                            },
+                            {
+                                label: 'Available',
+                                data: available,
+                                backgroundColor: 'rgba(40, 167, 69, 0.8)',
+                                borderColor: 'rgba(40, 167, 69, 1)',
+                                borderWidth: 2,
+                                borderRadius: 8
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    font: {
+                                        size: 14,
+                                        weight: 'bold'
+                                    },
+                                    padding: 20,
+                                    usePointStyle: true
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                padding: 12,
+                                titleFont: {
+                                    size: 14,
+                                    weight: 'bold'
+                                },
+                                bodyFont: {
+                                    size: 13
+                                },
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.dataset.label || '';
+                                        const value = context.parsed.y;
+                                        const total = capacity[context.dataIndex];
+                                        const percentage = ((value / total) * 100).toFixed(1);
+                                        return `${label}: ${value} (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                stacked: true,
+                                grid: {
+                                    display: false
+                                },
+                                ticks: {
+                                    font: {
+                                        size: 12,
+                                        weight: 'bold'
+                                    }
+                                }
+                            },
+                            y: {
+                                stacked: true,
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.05)'
+                                },
+                                ticks: {
+                                    font: {
+                                        size: 12
+                                    },
+                                    callback: function(value) {
+                                        return value + ' beds';
+                                    }
+                                }
+                            }
+                        },
+                        animation: {
+                            duration: 1500,
+                            easing: 'easeInOutQuart'
+                        }
+                    }
+                });
+            }
+            
+            // Room Type Distribution Pie Chart
+            const pieCtx = document.getElementById('roomTypeChart');
+            if (pieCtx) {
+                const roomData = <?php echo json_encode($roomStats); ?>;
+                
+                new Chart(pieCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: roomData.map(stat => stat.type_name),
+                        datasets: [{
+                            data: roomData.map(stat => parseInt(stat.total_rooms)),
+                            backgroundColor: [
+                                'rgba(102, 126, 234, 0.8)',
+                                'rgba(118, 75, 162, 0.8)',
+                                'rgba(255, 193, 7, 0.8)'
+                            ],
+                            borderColor: [
+                                'rgba(102, 126, 234, 1)',
+                                'rgba(118, 75, 162, 1)',
+                                'rgba(255, 193, 7, 1)'
+                            ],
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    padding: 15,
+                                    font: {
+                                        size: 12
+                                    },
+                                    usePointStyle: true
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.label || '';
+                                        const value = context.parsed;
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = ((value / total) * 100).toFixed(1);
+                                        return `${label}: ${value} rooms (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        },
+                        animation: {
+                            animateRotate: true,
+                            animateScale: true,
+                            duration: 2000
+                        }
+                    }
+                });
+            }
+            
+            // Allocation Status Chart
+            const statusCtx = document.getElementById('allocationStatusChart');
+            if (statusCtx) {
+                // Get allocation status counts
+                <?php
+                $statusCounts = [
+                    'pending' => 0,
+                    'confirmed' => 0,
+                    'checked_in' => 0,
+                    'checked_out' => 0,
+                    'cancelled' => 0
+                ];
+                
+                $allAllocations = fetchAll("SELECT status FROM allocations");
+                foreach ($allAllocations as $alloc) {
+                    if (isset($statusCounts[$alloc['status']])) {
+                        $statusCounts[$alloc['status']]++;
+                    }
+                }
+                ?>
+                
+                const statusData = <?php echo json_encode($statusCounts); ?>;
+                
+                new Chart(statusCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Pending', 'Confirmed', 'Checked In', 'Checked Out', 'Cancelled'],
+                        datasets: [{
+                            label: 'Number of Allocations',
+                            data: Object.values(statusData),
+                            backgroundColor: [
+                                'rgba(255, 193, 7, 0.8)',
+                                'rgba(13, 110, 253, 0.8)',
+                                'rgba(25, 135, 84, 0.8)',
+                                'rgba(108, 117, 125, 0.8)',
+                                'rgba(220, 53, 69, 0.8)'
+                            ],
+                            borderColor: [
+                                'rgba(255, 193, 7, 1)',
+                                'rgba(13, 110, 253, 1)',
+                                'rgba(25, 135, 84, 1)',
+                                'rgba(108, 117, 125, 1)',
+                                'rgba(220, 53, 69, 1)'
+                            ],
+                            borderWidth: 2,
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.parsed.y + ' allocation(s)';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            }
+                        },
+                        animation: {
+                            duration: 1500,
+                            easing: 'easeInOutQuart'
+                        }
+                    }
+                });
+            }
+            
+            // Auto-refresh stats every 30 seconds (optional)
+            // setInterval(() => {
+            //     location.reload();
+            // }, 30000);
+        });
+    </script>
 </body>
 </html>
