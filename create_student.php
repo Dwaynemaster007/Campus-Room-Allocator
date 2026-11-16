@@ -1,4 +1,10 @@
 <?php
+// Setup script: command line only, so nobody can run it from a browser.
+// Usage: php create_student.php
+if (PHP_SAPI !== 'cli') {
+    http_response_code(403);
+    exit('Forbidden');
+}
 require_once 'config/database.php';
 
 // Check if student already exists
@@ -14,8 +20,7 @@ if ($check) {
     $password_hash = password_hash('student123', PASSWORD_DEFAULT);
     
     $sql = "INSERT INTO users (student_id, first_name, last_name, email, password_hash, phone, year_level, gender, program, user_role) 
-            VALUES ('STU2024001', 'John', 'Doe', 'john.doe@student.edu', ?, '1234567891', '1', 'Male', 'Computer Science', '	
-student')";
+            VALUES ('STU2024001', 'John', 'Doe', 'john.doe@student.edu', ?, '1234567891', '1', 'Male', 'Computer Science', 'student')";
     
     executeQuery($sql, [$password_hash]);
     echo "✅ Student account created!<br>";

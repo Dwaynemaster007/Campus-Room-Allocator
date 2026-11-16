@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../includes/functions.php';
 /**
  * Session Management
  * Campus Room Allocation System
@@ -142,7 +143,7 @@ function requireLogin($redirect_to = '') {
         if (empty($redirect_to)) {
             $redirect_to = $_SERVER['REQUEST_URI'];
         }
-        header('Location: /csc433/auth/login.php?redirect=' . urlencode($redirect_to));
+        header('Location: ' . BASE_URL . 'auth/login.php?redirect=' . urlencode($redirect_to));
         exit();
     }
 }
@@ -153,7 +154,7 @@ function requireLogin($redirect_to = '') {
 function requireAdmin() {
     requireLogin();
     if (!isAdmin()) {
-        header('Location: /csc433/pages/dashboard.php?error=access_denied');
+        header('Location: ' . BASE_URL . 'pages/dashboard.php?error=access_denied');
         exit();
     }
 }
@@ -164,7 +165,7 @@ function requireAdmin() {
 function requireStudent() {
     requireLogin();
     if (!isStudent()) {
-        header('Location: /csc433/pages/dashboard.php?error=access_denied');
+        header('Location: ' . BASE_URL . 'pages/dashboard.php?error=access_denied');
         exit();
     }
 }
@@ -273,7 +274,7 @@ function csrfTokenField() {
 // Check for session expiration on every page load
 if (isLoggedIn() && isSessionExpired()) {
     destroyUserSession();
-    header('Location: /csc433/auth/login.php?error=session_expired');
+    header('Location: ' . BASE_URL . 'auth/login.php?error=session_expired');
     exit();
 }
 

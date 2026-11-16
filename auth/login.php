@@ -10,9 +10,9 @@ require_once 'session.php';
 // Redirect if already logged in
 if (isLoggedIn()) {
     if (isAdmin()) {
-        header('Location: /csc433/pages/admin/dashboard.php');
+        header('Location: ' . BASE_URL . 'pages/admin/dashboard.php');
     } else {
-        header('Location: /csc433/pages/student/dashboard.php');
+        header('Location: ' . BASE_URL . 'pages/student/dashboard.php');
     }
     exit();
 }
@@ -50,9 +50,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (!empty($redirect)) {
                     header('Location: ' . $redirect);
                 } elseif ($user['user_role'] === 'admin') {
-                    header('Location: /csc433/pages/admin/dashboard.php');
+                    header('Location: ' . BASE_URL . 'pages/admin/dashboard.php');
                 } else {
-                    header('Location: /csc433/pages/student/dashboard.php');
+                    header('Location: ' . BASE_URL . 'pages/student/dashboard.php');
                 }
                 exit();
             } else {

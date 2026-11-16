@@ -1,4 +1,10 @@
 <?php
+// Setup script: command line only, so nobody can run it from a browser.
+// Usage: php create_admin.php
+if (PHP_SAPI !== 'cli') {
+    http_response_code(403);
+    exit('Forbidden');
+}
 require_once 'config/database.php';
 
 echo "<h2>Admin Account Setup</h2>";

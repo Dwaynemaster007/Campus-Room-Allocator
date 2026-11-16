@@ -9,7 +9,7 @@ require_once 'session.php';
 
 // Redirect if already logged in
 if (isLoggedIn()) {
-    header('Location: /csc433/pages/dashboard.php');
+    header('Location: ' . BASE_URL . 'pages/dashboard.php');
     exit();
 }
 

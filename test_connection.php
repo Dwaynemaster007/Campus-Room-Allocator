@@ -1,4 +1,10 @@
 <?php
+// Setup script: command line only, so nobody can run it from a browser.
+// Usage: php test_connection.php
+if (PHP_SAPI !== 'cli') {
+    http_response_code(403);
+    exit('Forbidden');
+}
 require_once 'config/database.php';
 
 echo "<h2>Database Connection Test</h2>";
@@ -25,41 +31,3 @@ if (testConnection()) {
     echo "<p style='color: red;'>❌ Database connection failed!</p>";
 }
 ?>
-```
-
-3. Save as: `C:\xampp\htdocs\csc433\test_connection.php`
-
----
-
-## 🧪 **Test the Connection**
-
-1. **Make sure Apache and MySQL are running** in XAMPP Control Panel (both should be green)
-
-2. **Open your browser** and go to:
-```
-   http://localhost/csc433/test_connection.php
-```
-
-3. **You should see:**
-   - ✅ Database connected successfully!
-   - Total users in database: **6**
-   - Room Types listed (Common Room, Double Room, Single Room)
-
----
-
-## 📸 **What You Should See:**
-
-If successful, you'll see something like:
-```
-Database Connection Test
-
-✅ Database connected successfully!
-
-Total users in database: 6
-
-Room Types:
-- Common Room - Capacity: 6
-- Double Room - Capacity: 2
-- Single Room - Capacity: 1
-
-✅ Database is working perfectly!
